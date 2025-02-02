@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhoGal - AKA Photo Gallery</title>
+    <style>
+        /* Unique Gradient Background */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #121212, #1f1f1f); /* Dark mode by default */
+            min-height: 100vh;
+            color: white;
+        }
+        h1 {
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+            font-size: 3rem;
+            font-weight: bold;
+            background: rgba(0, 0, 0, 0.5);
+        }
+        h2 {
+            text-align: center;
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: normal;
+            background: rgba(0, 0, 0, 0.5);
+            padding-bottom: 20px;
+        }
+        #imageContainer {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px;
+        }
+        .date-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .date-header {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .month-header {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        .image-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+        }
+        .image-card {
+            position: relative;
+            overflow: hidden;
+            border-radius: 8px;
+            background: white;
+            aspect-ratio: 1; /* Square images */
+            transition: transform 0.2s ease-in-out; /* Add hover transition */
+        }
+        .image-card:hover {
+            transform: scale(1.05); /* Zoom effect on hover */
+        }
+        .image-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover; /* Ensure images fill the container */
+            border-radius: 8px;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            margin: 20px auto;
+            display: block;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            display: block;
+            margin: 0 auto 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #357ab8;
+        }
+        /* Dark Mode Styles */
+        body.dark-mode {
+            background: linear-gradient(135deg, #121212, #1f1f1f);
+            color: #ffffff;
+        }
+        body.light-mode {
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #000000;
+        }
+        body.light-mode h1, body.light-mode h2 {
+            background: rgba(0, 0, 0, 0.5);
+        }
+        body.light-mode .image-card {
+            background: white;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        /* Dark Mode Button */
+        #darkModeToggle {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+        }
+        body.dark-mode #darkModeToggle {
+            background: #757575;
+        }
+        body.light-mode #darkModeToggle {
+            background: #4285f4;
+        }
+        /* Up Button */
+        #upButton {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #4285f4;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            z-index: 1000;
+            display: none; /* Hidden by default */
+        }
+        body.dark-mode #upButton {
+            background: #757575;
+        }
+        body.light-mode #upButton {
+            background: #4285f4;
+        }
+        /* Faces Row */
+        #facesRow {
+            display: flex;
+            overflow-x: auto;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px;
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+        .face-card {
+            flex: 0 0 auto;
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            overflow: hidden;
+            cursor: pointer;
+            background: white; /* Add this to ensure the face cards have a background */
+        }
+        .face-card img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        /* Slideshow Modal Styles */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 1000;
+            padding-top: 60px;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+        }
+        .modal-content {
+            margin: auto;
+            display: block;
+            max-width: 80%;
+            max-height: 80%;
+        }
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: white;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        /* Folder Navigation Styles */
+        #folderNavigation {
+            text-align: center;
+            margin: 20px;
+            scroll-behavior: smooth; /* Smooth scrolling */
+        }
+        .folder {
+            cursor: pointer;
+            margin: 5px;
+            padding: 10px;
+            background: #4285f4;
+            color: white;
+            border-radius: 4px;
+            display: inline-block;
+        }
+        .folder:hover {
+            background: #357ab8;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+    <h1>PhoGal</h1>
+    <h2>Cherish Memories</h2>
+    <input type="text" id="drivePath" placeholder="Enter drive path (e.g., D:/)">
+    <button onclick="loadImages()">Load Images</button>
+    <input type="date" id="dateFilter" placeholder="Filter by date">
+    <button onclick="filterImages()">Filter</button>
+    <div id="folderNavigation">
+        <div id="folders"></div>
+    </div>
+    <!-- Faces Row -->
+    <div id="facesRow"></div>
+    <div id="imageContainer"></div>
+    <!-- Up Button, Dark Mode Button, Slideshow Modal -->
+    <button id="upButton" onclick="scrollToTop()">⬆️ Up</button>
+    <button id="darkModeToggle" onclick="toggleDarkMode()">☀️ Light Mode</button>
+    <div id="slideshowModal" class="modal">
+        <span class="close" onclick="closeSlideshow()">&times;</span>
+        <img id="slideshowImage" class="modal-content" alt="Slideshow Image">
+    </div>
+
+    <!-- Include face-api.js -->
+    <script src="D:/image-viewer/node_modules/face-api.js/dist/face-api.js"></script>
+    <!-- Your other scripts -->
+    <script>
+        // Your JavaScript functions here
+        let currentPath = '';
+        let facesMap = new Map(); // Map to store faces and their associated images
+
+        async function loadModels() {
+            await faceapi.nets.ssdMobilenetv1.loadFromUri('D:/image-viewer/node_modules/face-api.js/build/es6/ssdMobilenetv1/SsdMobilenetv1.js');
+            await faceapi.nets.faceLandmark68Net.loadFromUri('D:/image-viewer/node_modules/face-api.js/build/commonjs/faceLandmarkNet/FaceLandmark68Net.js');
+            await faceapi.nets.faceRecognitionNet.loadFromUri('D:/image-viewer/node_modules/face-api.js/build/es6/faceRecognitionNet/FaceRecognitionNet.js');
+        }
+
+        async function detectFaces(imageElement) {
+            const detections = await faceapi.detectAllFaces(imageElement)
+                .withFaceLandmarks()
+                .withFaceDescriptors();
+            console.log('Detections:', detections); // Log detections
+            return detections;
+        }
+
+        function addFaceToRow(faceDescriptor, imageSrc) {
+            console.log('Adding face:', imageSrc); // Log image source
+            const facesRow = document.getElementById('facesRow');
+            const descriptorKey = JSON.stringify(faceDescriptor);
+
+            if (!facesMap.has(descriptorKey)) {
+                facesMap.set(descriptorKey, []);
+            }
+            facesMap.get(descriptorKey).push(imageSrc);
+
+            const sortedFaces = Array.from(facesMap.entries()).sort((a, b) => b[1].length - a[1].length);
+
+            facesRow.innerHTML = '';
+            sortedFaces.forEach(([descriptor, images]) => {
+                const faceCard = document.createElement('div');
+                faceCard.className = 'face-card';
+
+                const faceImage = document.createElement('img');
+                faceImage.src = images[0]; // Use the first image as a representative
+                faceImage.alt = 'Face';
+
+                faceCard.appendChild(faceImage);
+                facesRow.appendChild(faceCard);
+
+                faceCard.addEventListener('click', () => showFaceImages(descriptor));
+            });
+        }
+
+        async function initializeFaceDetection() {
+            await loadModels();
+            console.log('Models loaded'); // Log model loading
+            const images = document.querySelectorAll('.image-card img');
+            images.forEach(async imageElement => {
+                const detections = await detectFaces(imageElement);
+                detections.forEach(detection => {
+                    console.log('Face detected:', detection); // Log detected faces
+                    addFaceToRow(detection.descriptor, imageElement.src);
+                });
+            });
+        }
+
+        async function loadImages() {
+            const drivePath = document.getElementById('drivePath').value;
+            currentPath = drivePath || currentPath;
+            const response = await fetch(`/get-images?path=${encodeURIComponent(currentPath)}`);
+            const images = await response.json();
+
+            const container = document.getElementById('imageContainer');
+            container.innerHTML = ''; // Clear previous images
+
+            const groupedImages = groupImagesByDate(images);
+
+            for (const [date, images] of Object.entries(groupedImages)) {
+                const dateHeader = document.createElement('div');
+                dateHeader.className = 'date-header';
+                dateHeader.textContent = date;
+                container.appendChild(dateHeader);
+
+                const imageGroup = document.createElement('div');
+                imageGroup.className = 'image-group';
+
+                images.forEach(image => {
+                    const card = document.createElement('div');
+                    card.className = 'image-card';
+
+                    const imgElement = document.createElement('img');
+                    imgElement.src = image.path;
+                    imgElement.alt = image.path.split('/').pop();
+                    imgElement.setAttribute('data-date', image.created); // Ensure data-date is properly set
+
+                    imgElement.addEventListener('click', () => openSlideshow(image.path));
+
+                    card.appendChild(imgElement);
+                    imageGroup.appendChild(card);
+                });
+
+                container.appendChild(imageGroup);
+            }
+
+            initializeFaceDetection();
+            loadFolders(currentPath);
+        }
+
+        function filterImages() {
+            const selectedDate = document.getElementById('dateFilter').value;
+            console.log(`Filtering images for date: ${selectedDate}`); // Log selected date
+            const images = document.querySelectorAll('.image-card img');
+
+            if (selectedDate) {
+                images.forEach(image => {
+                    const imageDate = image.getAttribute('data-date');
+                    console.log(`Image date: ${imageDate}, Selected date: ${selectedDate}`); // Log image and selected dates
+
+                    if (imageDate === selectedDate) {
+                        image.parentElement.style.display = 'block';
+                    } else {
+                        image.parentElement.style.display = 'none';
+                    }
+                });
+            } else {
+                images.forEach(image => {
+                    image.parentElement.style.display = 'block';
+                });
+            }
+        }
+
+        function formatDate(date) {
+            const d = new Date(date);
+            const year = d.getFullYear();
+            const month = ('0' + (d.getMonth() + 1)).slice(-2);
+            const day = ('0' + d.getDate()).slice(-2);
+            return `${year}-${month}-${day}`;
+        }
+        // Add these functions to handle the slideshow modal
+        function openSlideshow(imageSrc) {
+            const modal = document.getElementById('slideshowModal');
+            const modalImg = document.getElementById('slideshowImage');
+            modal.style.display = 'block';
+            modalImg.src = imageSrc;
+            modalImg.alt = 'Slideshow Image'; // Set the alt attribute
+        }
+        function closeSlideshow() {
+            document.getElementById('slideshowModal').style.display = 'none';
+        }
+        // Dark Mode Toggle
+        function toggleDarkMode() {
+            const body = document.body;
+            const button = document.getElementById('darkModeToggle');
+            body.classList.toggle('dark-mode');
+            body.classList.toggle('light-mode');
+            if (body.classList.contains('dark-mode')) {
+                button.textContent = '☀️ Light Mode';
+            } else {
+                button.textContent = '🌙 Dark Mode';
+            }
+        }
+
+        // Up Button Visibility
+        window.onscroll = () => {
+            const upButton = document.getElementById('upButton');
+            if (document.body.scrollTop > 20 || document.documentElement.scrollTop > 20) {
+                upButton.style.display = 'block';
+            } else {
+                upButton.style.display = 'none';
+            }
+        };
+
+        // Scroll to Top
+        function scrollToTop() {
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE, and Opera
+        }
+
+        function groupImagesByDate(images) {
+            const grouped = {};
+
+            images.forEach(image => {
+                const date = new Date(image.created);
+                const dateString = date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                });
+
+                if (!grouped[dateString]) {
+                    grouped[dateString] = [];
+                }
+                grouped[dateString].push(image);
+            });
+
+            return grouped;
+        }
+
+        async function loadFolders(path) {
+            const response = await fetch(`/get-folders?path=${encodeURIComponent(path)}`);
+            const folders = await response.json();
+
+            const foldersContainer = document.getElementById('folders');
+            foldersContainer.innerHTML = folders.map(folder => `
+                <div class="folder" onclick="navigateTo('${folder}')">📁 ${folder}</div>
+            `).join('');
+        }
+
+        function navigateTo(folder) {
+            currentPath = path.join(currentPath, folder);
+            loadImages(currentPath);
+        }
+    </script>
+</body>
+</html>
