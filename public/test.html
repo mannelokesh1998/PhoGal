@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Detection Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: #222;
+            color: #ddd;
+            margin: 0;
+        }
+        img {
+            width: 400px;
+            height: auto;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        canvas {
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <h1>Face Detection Test</h1>
+    <img id="testImage" src="D:\image-viewer\public\images\test_image.jpg" alt="Test Image">
+    <script src="D:\image-viewer\node_modules\face-api.js\dist\face-api.js"></script>
+    <script>
+        async function run() {
+            await faceapi.nets.ssdMobilenetv1.loadFromUri("D:\image-viewer\models");
+            await faceapi.nets.faceLandmark68Net.loadFromUri("D:\image-viewer\models");
+            await faceapi.nets.faceRecognitionNet.loadFromUri("D:\image-viewer\models");
+
+            const image = document.getElementById('testImage');
+            const canvas = faceapi.createCanvasFromMedia(image);
+            document.body.append(canvas);
+
+            const displaySize = { width: image.width, height: image.height };
+            faceapi.matchDimensions(canvas, displaySize);
+
+            const detections = await faceapi.detectAllFaces(image)
+                .withFaceLandmarks()
+                .withFaceDescriptors();
+
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            faceapi.draw.drawDetections(canvas, resizedDetections);
+            faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
+
+            console.log('Detections:', detections);
+        }
+
+        run();
+    </script>
+</body>
+</html>
