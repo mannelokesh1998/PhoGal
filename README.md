@@ -109,6 +109,6 @@ Express.js for the backend server.
 ## Contact
 For any questions or feedback, feel free to reach out:
 
-**Your Name**: manne.lokesh@outlook.com
+**Email**: manne.lokesh@outlook.com
 
-**GitHub: Your** https://github.com/mannelokesh1998
+**GitHub:** https://github.com/mannelokesh1998
